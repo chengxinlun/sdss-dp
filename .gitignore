@@ -89,7 +89,5 @@ ENV/
 .ropeproject
 
 # Skip the imported things
-code/
-data/
-plot/
+*/
 *.tar.gz
