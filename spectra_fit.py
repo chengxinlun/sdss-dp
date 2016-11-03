@@ -21,11 +21,10 @@ def cffit(w, f, e):
                   - np.log(abs(f[-1]/f[0])) / np.log(abs(w[-1]/w[0])), 0.0, 0.0,
                   0.0, 0.0, fixed={'x_0': True}) + fem
     res = lmlsq(cf, wf, ff, ef, 100000)
-    return res.parameters
+    return res
 
 
-def hofit(w, f, e, cfres):
-    cf = ContSdss(*cfres[:7]) + Fe2V(*cfres[6:-1])
+def hofit(w, f, e, cf):
     ff = f - cf(w)
     hbeta = Hbeta2(10.0, 0.0, 500.0, 40.0, 0.0, 1800.0, 40.0, 0.0, 1800.0,
                    bounds={'n_a': [0.0, 50.0], 'n_s': [-1000.0, 1000.0],
@@ -43,7 +42,7 @@ def hofit(w, f, e, cfres):
         'a': [0.0, 50.0], 's': [-1000.0, 1000.0], 'w': [1200.0, 20000.0]})
     all_lines = hbeta + o3 + hdelta + hgamma
     res = lmlsq(all_lines, w, ff, e, 100000)
-    return res.parameters
+    return res
 
 
 if __name__ == "__main__":

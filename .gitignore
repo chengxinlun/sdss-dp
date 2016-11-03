@@ -91,6 +91,8 @@ ENV/
 # Skip the imported things
 */
 *.tar.gz
+*.0
 .*
-.txt
+*.png
+*.txt
 !/.gitignore
