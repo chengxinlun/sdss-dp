@@ -90,7 +90,8 @@ def spectra_fit(rmid, mjd, isMc, cont_init, line_init):
 def plot_fit(rmid, mjd, res_list, w, f):
     save_location = os.path.join(Location.fitting, str(rmid))
     create_directory(save_location)
-    f = open(os.path.join(Location.root, save_location, str(mjd) + ".pkl"))
+    f = open(os.path.join(Location.root, save_location, str(mjd) + ".pkl"),
+             "wb")
     pickle.dump([each.parameters for each in res_list], f)
     f.close()
     plt.plot(w, f)
