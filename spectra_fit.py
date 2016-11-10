@@ -67,7 +67,7 @@ def spectra_fit(rmid, mjd, isMc, cont_init, line_init):
                            ".pkl")
     except Exception as e:
         logger = logging.getLogger("root")
-        logger.error("Error: " + e.message, exc_info=sys.exc_info())
+        logger.error("Error", exc_info=sys.exc_info())
         sys.exc_clear()
         return []
     with warnings.catch_warnings():
@@ -77,7 +77,7 @@ def spectra_fit(rmid, mjd, isMc, cont_init, line_init):
             line_res = hofit(w, f, e, line_init)
         except Exception as e:
             logger = logging.getLogger("root")
-            logger.error("Eoor: " + e.message, exc_info=sys.exc_info())
+            logger.error("Error", exc_info=sys.exc_info())
             sys.exc_clear()
             return []
     if isMc:
