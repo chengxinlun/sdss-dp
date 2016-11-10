@@ -74,7 +74,7 @@ def spectra_fit(rmid, mjd, isMc, cont_init, line_init):
         warnings.filterwarnings('error')
         try:
             cont_res = cffit(w, f, e, cont_init)
-            line_res = hofit(w, f, e, line_init)
+            line_res = hofit(w, f, e, cont_res, line_init)
         except Exception as e:
             logger = logging.getLogger("root")
             logger.error("Error", exc_info=sys.exc_info())
