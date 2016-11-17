@@ -94,11 +94,11 @@ def plot_fit(rmid, mjd, res_list, w, f):
              "wb")
     pickle.dump([each.parameters for each in res_list], f)
     f.close()
-    fig = plt.figure()
     plt.plot(w, f)
     for each in res_list:
         plt.plot(w, each(w))
-    fig.savefig(os.path.join(Location.root, save_location, str(mjd) + ".png"))
+    plt.savefig(os.path.join(Location.root, save_location, str(mjd) + ".png"))
+    plt.close()
 
 
 if __name__ == "__main__":
