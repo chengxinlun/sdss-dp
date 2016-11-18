@@ -80,7 +80,7 @@ def spectra_fit(rmid, mjd, isMc, cont_init, line_init):
             logger.error("Error", exc_info=sys.exc_info())
             sys.exc_clear()
             return []
-    if isMc:
+    if not isMc:
         plot_fit(rmid, mjd, [cont_res, line_res], w, f)
         return []
     else:
@@ -94,10 +94,11 @@ def plot_fit(rmid, mjd, res_list, w, f):
              "wb")
     pickle.dump([each.parameters for each in res_list], f)
     f.close()
+    fig = plt.figure()
     plt.plot(w, f)
     for each in res_list:
         plt.plot(w, each(w))
-    plt.savefig(os.path.join(Location.root, save_location, str(mjd) + ".png"))
+    fig.savefig(os.path.join(Location.root, save_location, str(mjd) + ".png"))
     plt.close()
 
 
