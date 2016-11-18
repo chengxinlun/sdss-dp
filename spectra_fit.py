@@ -98,7 +98,8 @@ def plot_fit(rmid, mjd, res_list, w, f):
     plt.plot(w, f)
     for each in res_list:
         plt.plot(w, each(w))
-    fig.savefig(os.path.join(Location.root, save_location, str(mjd) + ".png"))
+    fig.savefig(os.path.join(Location.root, save_location, str(mjd) + ".png"),
+                format="png")
     plt.close()
 
 
