@@ -96,7 +96,6 @@ if __name__ == "__main__":
                 56720, 56722, 56726, 56739, 56745, 56747, 56749, 56751, 56755,
                 56768, 56772, 56780, 56782, 56783, 56795, 56799, 56804, 56808,
                 56813, 56825, 56829, 56833, 56837]
-    for each in source_list:
-        print("Begin fitting for " + str(each))
-        args = [(each, each_mjd, False, None, None,) for each_mjd in mjd_list]
-        res = para_return(spectra_fit, args, num_thread=32)
+    args = [(each, each_mjd, False, None, None,) for each in source_list
+            for each_mjd in mjd_list]
+    res = para_return(spectra_fit, args, num_thread=100)
