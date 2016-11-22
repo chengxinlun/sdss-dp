@@ -16,7 +16,7 @@ from code.fitting.fitter import lmlsq
 from code.core.dataio.specio import get_spec
 from code.core.location import Location
 from code.core.util.io import create_directory
-from code.core.util.parallel import param_return
+from code.core.util.parallel import para_return
 
 
 def cffit(w, f, e, initial):
@@ -100,4 +100,4 @@ if __name__ == "__main__":
     for each in source_list:
         print("Begin fitting for " + str(each))
         args = [(each, each_mjd, False, None, None,) for each_mjd in mjd_list]
-        res = param_return(spectra_fit, args, num_thread=32)
+        res = para_return(spectra_fit, args, num_thread=32)
