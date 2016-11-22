@@ -58,10 +58,11 @@ def hofit(w, f, e, cf, initial):
     return res
 
 
-def spectra_fit(rmid, mjd, isMc, cont_init, line_init):
+def spectra_fit(rmid, mjd, isMc, cont_init, line_init, w, f, e):
     try:
-        w, f, e = get_spec("data/calib/pt/" + str(rmid) + "-" + str(mjd) +
-                           ".pkl")
+        if w is None and f is None and e is None:
+            w, f, e = get_spec("data/calib/pt/" + str(rmid) + "-" + str(mjd) +
+                               ".pkl")
         with warnings.catch_warnings():
             warnings.filterwarnings('error')
             cont_res = cffit(w, f, e, cont_init)
@@ -96,6 +97,6 @@ if __name__ == "__main__":
                 56720, 56722, 56726, 56739, 56745, 56747, 56749, 56751, 56755,
                 56768, 56772, 56780, 56782, 56783, 56795, 56799, 56804, 56808,
                 56813, 56825, 56829, 56833, 56837]
-    args = [(each, each_mjd, False, None, None,) for each in source_list
-            for each_mjd in mjd_list]
+    args = [(each, each_mjd, False, None, None, None, None, None)
+            for each in source_list for each_mjd in mjd_list]
     res = para_return(spectra_fit, args, num_thread=100)
