@@ -16,7 +16,6 @@ from code.fitting.fitter import lmlsq
 from code.core.dataio.specio import get_spec
 from code.core.location import Location
 from code.core.util.io import create_directory
-from code.core.dataio.rawio import get_source_info
 from code.core.util.parallel import param_return
 
 
@@ -94,8 +93,11 @@ if __name__ == "__main__":
     f = open(os.path.join(Location.root, "data/source_list.pkl"), "rb")
     source_list = pickle.load(f)
     f.close()
+    mjd_list = [56660, 56664, 56669, 56683, 56686, 56697, 56713, 56715, 56717,
+                56720, 56722, 56726, 56739, 56745, 56747, 56749, 56751, 56755,
+                56768, 56772, 56780, 56782, 56783, 56795, 56799, 56804, 56808,
+                56813, 56825, 56829, 56833, 56837]
     for each in source_list:
         print("Begin fitting for " + str(each))
-        mjd_list = get_source_info(each)['mjd']
         args = [(each, each_mjd, False, None, None,) for each_mjd in mjd_list]
         res = param_return(spectra_fit, args, num_thread=32)
