@@ -16,6 +16,8 @@ from code.fitting.fitter import lmlsq
 from code.core.dataio.specio import get_spec
 from code.core.location import Location
 from code.core.util.io import create_directory
+from code.core.dataio.rawio import get_source_info
+from code.core.util.parallel import param_return
 
 
 def cffit(w, f, e, initial):
@@ -89,4 +91,11 @@ def save_fit(rmid, mjd, res_list, w, f):
 
 if __name__ == "__main__":
     logging.config.fileConfig("process_log.conf")
-    res = spectra_fit(782, 56660, True, None, None)
+    f = open(os.path.join(Location.root, "data/source_list.pkl"), "rb")
+    source_list = pickle.load(f)
+    f.close()
+    for each in source_list:
+        print("Begin fitting for " + str(each))
+        mjd_list = get_source_info(each)['mjd']
+        args = [(each, each_mjd, False, None, None,) for each_mjd in mjd_list]
+        res = param_return(spectra_fit, args, num_thread=32)
