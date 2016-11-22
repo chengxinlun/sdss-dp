@@ -25,8 +25,7 @@ def cffit(w, f, e, initial):
     # Set initial parameters if do not exist
     if initial is None:
         initial = [0.0, 900.0, 1.0, 0.0, 900.0, 1.0, ff[0], wf[0],
-                   - np.log(abs(f[-1]/f[0])) / np.log(abs(w[-1]/w[0])), 0.0,
-                   0.0, 0.0, 0.0]
+                   - np.log(abs(f[-1]/f[0])) / np.log(abs(w[-1]/w[0]))]
     fem = Fe2V(*initial[0:6])
     cf = ContSdss(*initial[6:], fixed={'x_0': True}) + fem
     res = lmlsq(cf, wf, ff, ef, 100000)
