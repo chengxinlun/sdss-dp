@@ -16,9 +16,6 @@ from code.fitting.fitter import lmlsq
 from code.core.dataio.specio import get_spec
 from code.core.location import Location
 from code.core.util.io import create_directory
-import matplotlib
-matplotlib.use('Agg')
-import matplotlib.pyplot as plt
 
 
 def cffit(w, f, e, initial):
@@ -65,42 +62,29 @@ def spectra_fit(rmid, mjd, isMc, cont_init, line_init):
     try:
         w, f, e = get_spec("data/calib/pt/" + str(rmid) + "-" + str(mjd) +
                            ".pkl")
+        with warnings.catch_warnings():
+            warnings.filterwarnings('error')
+            cont_res = cffit(w, f, e, cont_init)
+            line_res = hofit(w, f, e, cont_res, line_init)
+        if not isMc:
+            save_fit(rmid, mjd, [cont_res, line_res], w, f)
+            return []
+        else:
+            return [cont_res.parameters, line_res.parameters]
     except Exception as e:
         logger = logging.getLogger("root")
         logger.error("Error", exc_info=sys.exc_info())
         sys.exc_clear()
         return []
-    with warnings.catch_warnings():
-        warnings.filterwarnings('error')
-        try:
-            cont_res = cffit(w, f, e, cont_init)
-            line_res = hofit(w, f, e, cont_res, line_init)
-        except Exception as e:
-            logger = logging.getLogger("root")
-            logger.error("Error", exc_info=sys.exc_info())
-            sys.exc_clear()
-            return []
-    if not isMc:
-        plot_fit(rmid, mjd, [cont_res, line_res], w, f)
-        return []
-    else:
-        return [cont_res.parameters, line_res.parameters]
 
 
-def plot_fit(rmid, mjd, res_list, w, f):
+def save_fit(rmid, mjd, res_list, w, f):
     save_location = os.path.join(Location.fitting, str(rmid))
     create_directory(save_location)
     f = open(os.path.join(Location.root, save_location, str(mjd) + ".pkl"),
              "wb")
     pickle.dump([each.parameters for each in res_list], f)
     f.close()
-    fig = plt.figure()
-    plt.plot(w, f)
-    for each in res_list:
-        plt.plot(w, each(w))
-    fig.savefig(os.path.join(Location.root, save_location, str(mjd) + ".png"),
-                format="png")
-    plt.close()
 
 
 if __name__ == "__main__":
