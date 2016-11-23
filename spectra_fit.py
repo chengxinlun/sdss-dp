@@ -72,9 +72,11 @@ def spectra_fit(rmid, mjd, isMc, cont_init, line_init, w, f, e):
         else:
             return [cont_res.parameters, line_res.parameters]
     except Exception as e:
-        logger = logging.getLogger("root")
-        logger.error("Error", exc_info=sys.exc_info())
-        sys.exc_clear()
+        # logger = logging.getLogger("root")
+        # logger.error("Error", exc_info=sys.exc_info())
+        # sys.exc_clear()
+        print(e.message)
+        print(sys.exc_info())
         return []
 
 
