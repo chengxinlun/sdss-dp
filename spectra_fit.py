@@ -62,10 +62,10 @@ def spectra_fit(rmid, mjd, isMc, cont_init, line_init, w, f, e):
         if w is None and f is None and e is None:
             w, f, e = get_spec("data/calib/pt/" + str(rmid) + "-" + str(mjd) +
                                ".pkl")
-        with warnings.catch_warnings():
+        # with warnings.catch_warnings():
             # warnings.filterwarnings('error')
-            cont_res = cffit(w, f, e, cont_init)
-            line_res = hofit(w, f, e, cont_res, line_init)
+        cont_res = cffit(w, f, e, cont_init)
+        line_res = hofit(w, f, e, cont_res, line_init)
         if not isMc:
             save_fit(rmid, mjd, [cont_res, line_res], w, f)
             return []
