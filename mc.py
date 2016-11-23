@@ -25,8 +25,8 @@ def mcee(rmid, mjd):
         f_data = open(os.path.join(Location.root, Location.fitting, str(rmid),
                                    str(mjd) + ".pkl"), "rb")
         res_list = pickle.load(f_data)
-        cont_init = res_list[0:10]
-        line_init = res_list[10:]
+        cont_init = res_list[0:9]
+        line_init = res_list[9:]
         f_data.close()
         # Noise generation
         f_with_e = noise_gene(f, e)
