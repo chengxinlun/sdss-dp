@@ -88,6 +88,7 @@ def save_fit(rmid, mjd, res_list, w, f):
 
 
 if __name__ == "__main__":
+    '''
     logging.config.fileConfig("process_log.conf")
     f = open(os.path.join(Location.root, "data/source_list.pkl"), "rb")
     source_list = pickle.load(f)
@@ -99,3 +100,6 @@ if __name__ == "__main__":
     args = [(each, each_mjd, False, None, None, None, None, None)
             for each in source_list for each_mjd in mjd_list]
     res = para_return(spectra_fit, args, num_thread=100)
+    '''
+    res = spectra_fit(175, 56660, False, None, None, None, None, None)
+    print(res)
