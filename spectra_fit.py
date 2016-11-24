@@ -38,20 +38,17 @@ def hofit(w, f, e, cf, initial):
         initial = [10.0, 0.0, 500.0, 40.0, 0.0, 1800.0, 40.0, 0.0, 1800.0,
                    20.0, 0.0, 500.0, 5008.22, 20.0, 0.0, 500.0, 4960.36,
                    10.0, 0.0, 1500.0, 4102.73, 20.0, 0.0, 1500.0, 4346.42]
-    hbeta = Hbeta2(*initial[0:9],
-                   bounds={'n_a': [0.0, 50.0], 'n_s': [-1000.0, 1000.0],
-                           'n_w': [0.0, 1200.0], 'w1_a': [0.0, 50.0],
-                           'w1_s': [-1000.0, 1000.0], 'w1_w': [1200.0, 20000.0],
-                           'w2_a': [0.0, 50.0], 'w2_s': [-1000.0, 1000.0],
-                           'w2_w': [1200.0, 20000.0]})
+    hbeta = Hbeta2(*initial[0:9], bounds={'n_a': [0.0, 50.0],
+                                          'w1_a': [0.0, 50.0],
+                                          'w2_a': [0.0, 50.0]})
     o3 = Narrow(*initial[9:13], fixed={'c': True}, bounds={
         'a': [0.0, 50.0], 's': [-1000.0, 1000.0], 'w': [0.0, 1200.0]}) + \
         Narrow(*initial[13:17], fixed={'c': True}, bounds={
             'a': [0.0, 50.0], 's': [-1000.0, 1000.0], 'w': [0.0, 1200.0]})
     hdelta = Narrow(*initial[17:21], fixed={'c': True}, bounds={
-        'a': [0.0, 50.0], 's': [-1000.0, 1000.0], 'w': [1200.0, 20000.0]})
+        'a': [0.0, 50.0]})
     hgamma = Narrow(*initial[21:], fixed={'c': True}, bounds={
-        'a': [0.0, 50.0], 's': [-1000.0, 1000.0], 'w': [1200.0, 20000.0]})
+        'a': [0.0, 50.0]})
     all_lines = hbeta + o3 + hdelta + hgamma
     res = lmlsq(all_lines, w, ff, e, 100000)
     return res
@@ -89,13 +86,15 @@ def save_fit(rmid, mjd, res_list, w, f):
 
 if __name__ == "__main__":
     logging.config.fileConfig("process_log.conf")
-    f = open(os.path.join(Location.root, "data/source_list.pkl"), "rb")
-    source_list = pickle.load(f)
-    f.close()
-    mjd_list = [56660, 56664, 56669, 56683, 56686, 56697, 56713, 56715, 56717,
-                56720, 56722, 56726, 56739, 56745, 56747, 56749, 56751, 56755,
-                56768, 56772, 56780, 56782, 56783, 56795, 56799, 56804, 56808,
-                56813, 56825, 56829, 56833, 56837]
-    args = [(each, each_mjd, False, None, None, None, None, None)
-            for each in source_list for each_mjd in mjd_list]
-    res = para_return(spectra_fit, args, num_thread=100)
+    # f = open(os.path.join(Location.root, "data/source_list.pkl"), "rb")
+    # source_list = pickle.load(f)
+    # f.close()
+    # mjd_list = [56660, 56664, 56669, 56683, 56686, 56697, 56713, 56715, 56717,
+    #             56720, 56722, 56726, 56739, 56745, 56747, 56749, 56751, 56755,
+    #             56768, 56772, 56780, 56782, 56783, 56795, 56799, 56804, 56808,
+    #             56813, 56825, 56829, 56833, 56837]
+    # args = [(each, each_mjd, False, None, None, None, None, None)
+    #         for each in source_list for each_mjd in mjd_list]
+    # res = para_return(spectra_fit, args, num_thread=100)
+    res = spectra_fit(341, 56660, True, None, None, None, None, None, None)
+    print(res)
