@@ -58,26 +58,24 @@ def hofit(w, f, e, cf, initial):
 
 
 def spectra_fit(rmid, mjd, isMc, cont_init, line_init, w, f, e):
-    # try:
-    if w is None and f is None and e is None:
-        w, f, e = get_spec("data/calib/pt/" + str(rmid) + "-" + str(mjd) +
+    try:
+        if w is None and f is None and e is None:
+            w, f, e = get_spec("data/calib/pt/" + str(rmid) + "-" + str(mjd) +
                                ".pkl")
-        # with warnings.catch_warnings():
-            # warnings.filterwarnings('error')
-    cont_res = cffit(w, f, e, cont_init)
-    line_res = hofit(w, f, e, cont_res, line_init)
-    if not isMc:
-        save_fit(rmid, mjd, [cont_res, line_res], w, f)
+        with warnings.catch_warnings():
+            warnings.filterwarnings('error')
+            cont_res = cffit(w, f, e, cont_init)
+            line_res = hofit(w, f, e, cont_res, line_init)
+        if not isMc:
+            save_fit(rmid, mjd, [cont_res, line_res], w, f)
+            return []
+        else:
+            return [cont_res.parameters, line_res.parameters]
+    except Exception as e:
+        logger = logging.getLogger("root")
+        logger.error("Error", exc_info=sys.exc_info())
+        sys.exc_clear()
         return []
-    else:
-        return [cont_res.parameters, line_res.parameters]
-    # except Exception as e:
-        # logger = logging.getLogger("root")
-        # logger.error("Error", exc_info=sys.exc_info())
-        # sys.exc_clear()
-    #     print(e.message)
-    #     print(sys.exc_info())
-    #     return []
 
 
 def save_fit(rmid, mjd, res_list, w, f):
@@ -90,7 +88,6 @@ def save_fit(rmid, mjd, res_list, w, f):
 
 
 if __name__ == "__main__":
-    '''
     logging.config.fileConfig("process_log.conf")
     f = open(os.path.join(Location.root, "data/source_list.pkl"), "rb")
     source_list = pickle.load(f)
@@ -102,6 +99,3 @@ if __name__ == "__main__":
     args = [(each, each_mjd, False, None, None, None, None, None)
             for each in source_list for each_mjd in mjd_list]
     res = para_return(spectra_fit, args, num_thread=100)
-    '''
-    res = spectra_fit(175, 56660, True, None, None, None, None, None)
-    print(res)
