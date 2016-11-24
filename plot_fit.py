@@ -45,6 +45,7 @@ def plot_fit(rmid, mjd, num_err):
 
 
 if __name__ == "__main__":
+    '''
     mjd_list = [56660, 56664, 56669, 56683, 56686, 56697, 56713, 56715, 56717,
                 56720, 56722, 56726, 56739, 56745, 56747, 56749, 56751, 56755,
                 56768, 56772, 56780, 56782, 56783, 56795, 56799, 56804, 56808,
@@ -60,3 +61,5 @@ if __name__ == "__main__":
             except Exception:
                 num_err.append(each_day)
         print(str(each_source) + ": " + str(len(num_err)))
+    '''
+    plot_fit(175, 56660, [])
