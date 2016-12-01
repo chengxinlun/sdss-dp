@@ -25,7 +25,13 @@ def plot_fit(rmid, mjd, num_err):
         cont_init = res_list[0]
         line_init = res_list[1]
         # Construct models from fitting result
-        fe = Fe2V(*cont_init[3:])
+        fe_param = cont_init[3:]
+        print(fe_param)
+        fe_param[1] = 1900
+        fe_param[2] = 1.0
+        fe_param[4] = 1900
+        fe_param[5] = 1.0
+        fe = Fe2V(*fe_param)
         cont = ContSdss(*cont_init[0:3])
         line = Hbeta2(*line_init[0:9]) + Narrow(*line_init[9:13]) + \
             Narrow(*line_init[13:17]) + Narrow(*line_init[17:21]) + \
@@ -34,8 +40,9 @@ def plot_fit(rmid, mjd, num_err):
         plt.plot(w, line(w))
         plt.plot(w, cont(w))
         plt.plot(w, fe(w))
-    except Exception:
-        num_err.append(mjd)
+        plt.plot(w, line(w) + cont(w) + fe(w))
+    except Exception as e:
+        print(str(e))
     # Saving plotting
     plt.plot(w, f)
     fig_file = os.path.join(Location.fitting_plot, str(rmid))
@@ -65,4 +72,4 @@ if __name__ == "__main__":
         print(str(each_source) + ": " + str(len(num_err)))
         print(num_err)
     '''
-    plot_fit(177, 56660, [])
+    plot_fit(320, 56660, [])

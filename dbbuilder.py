@@ -3,15 +3,12 @@
 import code.core.dataio.specio as s
 import code.calib.ptcalib as ec
 import code.visual.plotspec as p
-from code.calib.splitspec import splitspec
 from code.core.dataio.rawio import get_rm_list, get_source_info
-import numpy as np
 
 
 def calib_and_out(rmid, mjd):
     w, f, e = ec.ptcalib(rmid, mjd)
     fn = str(rmid) + "-" + str(mjd) + ".pkl"
-    w, f, e = splitspec(w, f, e, [np.array([4000.0, 5500.0])])
     s.save_spec(w, f, e, "data/calib/pt", fn)
     fd = "plot/spectra/" + str(rmid)
     fn = str(mjd) + ".png"
