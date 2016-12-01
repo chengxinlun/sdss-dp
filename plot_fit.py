@@ -25,13 +25,15 @@ def plot_fit(rmid, mjd, num_err):
         cont_init = res_list[0]
         line_init = res_list[1]
         # Construct models from fitting result
-        cont = ContSdss(*cont_init[0:3]) + Fe2V(*cont_init[3:])
+        fe = Fe2V(*cont_init[3:])
+        cont = ContSdss(*cont_init[0:3])
         line = Hbeta2(*line_init[0:9]) + Narrow(*line_init[9:13]) + \
             Narrow(*line_init[13:17]) + Narrow(*line_init[17:21]) + \
             Narrow(*line_init[21:])
         # Plotting fitting result
-        plt.plot(w, line(w) + cont(w))
+        plt.plot(w, line(w))
         plt.plot(w, cont(w))
+        plt.plot(w, fe(w))
     except Exception:
         num_err.append(mjd)
     # Saving plotting
@@ -45,6 +47,7 @@ def plot_fit(rmid, mjd, num_err):
 
 
 if __name__ == "__main__":
+    '''
     mjd_list = [56660, 56664, 56669, 56683, 56686, 56697, 56713, 56715, 56717,
                 56720, 56722, 56726, 56739, 56745, 56747, 56749, 56751, 56755,
                 56768, 56772, 56780, 56782, 56783, 56795, 56799, 56804, 56808,
@@ -61,3 +64,5 @@ if __name__ == "__main__":
                 num_err.append(each_day)
         print(str(each_source) + ": " + str(len(num_err)))
         print(num_err)
+    '''
+    plot_fit(177, 56660, [])
