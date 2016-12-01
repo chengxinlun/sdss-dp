@@ -26,7 +26,8 @@ def cffit(w, f, e, initial):
     if initial is None:
         initial = [0.0, 900.0, 1.0, 0.0, 1200.0, 1.0, ff[0], wf[0],
                    - np.log(abs(f[-1]/f[0])) / np.log(abs(w[-1]/w[0]))]
-    fem = Fe2V(*initial[0:6])
+        fem = Fe2V(*initial[0:6], bounds={'l1_i_r': [0.0, 50.0],
+                                          'n3_i_r': [0.0, 50.0]})
     cf = ContSdss(*initial[6:], fixed={'x_0': True}) + fem
     res = lmlsq(cf, wf, ff, ef, 100000)
     return res
