@@ -27,7 +27,6 @@ def plot_fit(rmid, mjd, num_err):
         line_init = res_list[1]
         # Construct models from fitting result
         fe_param = cont_init[3:]
-        fe_param[5] = 0.0
         fe = Fe2V(*fe_param)
         cont = ContSdss(*cont_init[0:3])
         line = Hbeta2(*line_init[0:9]) + Narrow(*line_init[9:13]) + \
@@ -69,4 +68,4 @@ if __name__ == "__main__":
         print(str(each_source) + ": " + str(len(num_err)))
         print(num_err)
     '''
-    plot_fit(341, 56660, [])
+    plot_fit(320, 56660, [])
