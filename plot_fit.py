@@ -4,6 +4,7 @@ import pickle
 import os
 import matplotlib.pyplot as plt
 from code.core.util.io import create_directory
+from code.calib.splitspec import splitspec
 from code.fitting.cont import ContSdss
 from code.fitting.fe2 import Fe2V
 from code.fitting.hbeta import Hbeta2
@@ -17,7 +18,7 @@ def plot_fit(rmid, mjd, num_err):
         # Loading original data
         ff_path = "data/calib/pt/" + str(rmid) + "-" + str(mjd) + ".pkl"
         w, f, e = get_spec(ff_path)
-        # Plotting original data
+        w, f, e = splitspec(w, f, e, [[4000.0, 5500.0]])
         # Loading fitting result
         f_data = open(os.path.join(Location.root, Location.fitting, str(rmid),
                                    str(mjd) + ".pkl"), "rb")
@@ -26,11 +27,7 @@ def plot_fit(rmid, mjd, num_err):
         line_init = res_list[1]
         # Construct models from fitting result
         fe_param = cont_init[3:]
-        print(fe_param)
-        fe_param[1] = 1900
-        fe_param[2] = 1.0
-        fe_param[4] = 1900
-        fe_param[5] = 1.0
+        fe_param[5] = 0.0
         fe = Fe2V(*fe_param)
         cont = ContSdss(*cont_init[0:3])
         line = Hbeta2(*line_init[0:9]) + Narrow(*line_init[9:13]) + \
@@ -72,4 +69,4 @@ if __name__ == "__main__":
         print(str(each_source) + ": " + str(len(num_err)))
         print(num_err)
     '''
-    plot_fit(320, 56660, [])
+    plot_fit(341, 56660, [])
