@@ -97,5 +97,5 @@ if __name__ == "__main__":
     # args = [(each, each_mjd, False, None, None, None, None, None)
     #         for each in source_list for each_mjd in mjd_list]
     # res = para_return(spectra_fit, args, num_thread=100)
-    res = spectra_fit(341, 56660, False, None, None, None, None, None)
+    res = spectra_fit(320, 56660, False, None, None, None, None, None)
     print(res)
