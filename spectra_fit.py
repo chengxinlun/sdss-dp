@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import os
-import sys
 import logging
 import logging.config
 import warnings
@@ -58,24 +57,34 @@ def hofit(w, f, e, cf, initial):
 
 
 def spectra_fit(rmid, mjd, isMc, cont_init, line_init, w, f, e):
-    try:
-        if w is None and f is None and e is None:
+    if w is None and f is None and e is None:
+        try:
             w, f, e = get_spec("data/calib/pt/" + str(rmid) + "-" + str(mjd) +
                                ".pkl")
-        with warnings.catch_warnings():
-            warnings.filterwarnings('error')
+        except Exception:
+            logger = logging.getLogger("root")
+            logger.error(str(rmid) + " " + str(mjd) + ": spectra not found.")
+            return []
+    with warnings.catch_warnings():
+        warnings.filterwarnings('error')
+        try:
             cont_res = cffit(w, f, e, cont_init)
+        except Exception:
+            logger = logging.getLogger("root")
+            logger.error(str(rmid) + " " + str(mjd) +
+                         ": continuum fitting failure")
+            return []
+        try:
             line_res = hofit(w, f, e, cont_res, line_init)
+        except Exception:
+            logger = logging.getLogger("root")
+            logger.error(str(rmid) + " " + str(mjd) +
+                         "line fitting failure")
         if not isMc:
             save_fit(rmid, mjd, [cont_res, line_res], w, f)
             return []
         else:
             return [cont_res.parameters, line_res.parameters]
-    except Exception as e:
-        logger = logging.getLogger("root")
-        logger.exception("Exception in spectra fitting")
-        sys.exc_clear()
-        return []
 
 
 def save_fit(rmid, mjd, res_list, w, f):
