@@ -12,7 +12,7 @@ from code.calib.splitspec import splitspec
 from code.fitting.fe2 import Fe2V
 from code.fitting.hbeta import Hbeta2
 from code.fitting.narrow import Narrow
-from code.fitting.fitter import silsq
+from code.fitting.fitter import lmlsq
 from code.core.dataio.specio import get_spec
 from code.core.location import Location
 from code.core.util.io import create_directory
@@ -26,10 +26,12 @@ def cffit(w, f, e, initial):
     if initial is None:
         initial = [0.0, 900.0, 1.0, 0.0, 1200.0, 1.0, ff[0], wf[0],
                    - np.log(abs(f[-1]/f[0])) / np.log(abs(w[-1]/w[0]))]
-        fem = Fe2V(*initial[0:6], bounds={'l1_i_r': [0.0, 50.0],
-                                          'n3_i_r': [0.0, 50.0]})
+    fem = Fe2V(*initial[0:6], bounds={'l1_shift': [-1000.0, 1000.0],
+                                      'l1_i_r': [0.0, 50.0],
+                                      'ne_shift': [-1000.0, 1000.0],
+                                      'n3_i_r': [0.0, 50.0]})
     cf = ContSdss(*initial[6:], fixed={'x_0': True}) + fem
-    res = silsq(cf, wf, ff, ef, 100000)
+    res = lmlsq(cf, wf, ff, ef, 100000)
     return res
 
 
@@ -51,7 +53,7 @@ def hofit(w, f, e, cf, initial):
     hgamma = Narrow(*initial[21:], fixed={'c': True}, bounds={
         'a': [0.0, 50.0]})
     all_lines = hbeta + o3 + hdelta + hgamma
-    res = silsq(all_lines, w, ff, e, 100000)
+    res = lmlsq(all_lines, w, ff, e, 100000)
     return res
 
 
