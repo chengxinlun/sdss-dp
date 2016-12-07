@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import os
-import sys
 import pickle
 import logging
 import numpy as np
 from code.core.location import Location
+from code.core.util.io import create_directory
 from code.core.dataio.dataio import get_spec
 from code.core.util.parallel import para_return
 from spectra_fit.py import spectra_fit
@@ -21,35 +21,50 @@ def mcee(rmid, mjd):
     try:
         w, f, e = get_spec("data/calib/pt/" + str(rmid) + "-" + str(mjd) +
                            ".pkl")
-        # Loading fitting result
+    except Exception:
+        logger = logging.getLogger("root")
+        logger.error("Error", str(rmid) + " " + str(mjd) +
+                     ": spectra not found")
+        return []
+    # Loading fitting result
+    try:
         f_data = open(os.path.join(Location.root, Location.fitting, str(rmid),
                                    str(mjd) + ".pkl"), "rb")
         res_list = pickle.load(f_data)
         cont_init = res_list[0:9]
         line_init = res_list[9:]
         f_data.close()
-        # Noise generation
-        f_with_e = noise_gene(f, e)
-        # Wrapping for parallel computation
-        args = [(rmid, mjd, True, cont_init, line_init, w, each, e,)
-                for each in f_with_e]
-        res = para_return(spectra_fit, args, num_thread=100)
-        res = [each for each in res if each != []]
-        num_parameters = len(res[0])
-        res_std = []
-        for each in xrange(num_parameters):
-            temp = res[:, each]
-            res_std.append(np.std(temp))
-        return res_std
-    except Exception as e:
+    except Exception:
         logger = logging.getLogger("root")
-        logger.error("Error", exc_info=sys.exc_info())
-        sys.exc_clear()
+        logger.error("Error", str(rmid) + str(mjd) +
+                     ": fitting result not found")
         return []
+    # Noise generation
+    f_with_e = noise_gene(f, e)
+    # Wrapping for parallel computation
+    args = [(rmid, mjd, True, cont_init, line_init, w, each, e,)
+            for each in f_with_e]
+    # Parallel computation
+    res = para_return(spectra_fit, args, num_thread=100)
+    # Filtering out empty(failed) fitting
+    res = [each for each in res if each != []]
+    # Exception of insufficient data
+    if len(res) < 80:
+        logger = logging.getLogger("root")
+        logger.error("Error", str(rmid) + " " + str(mjd) +
+                     ": insufficient number of Monte Carlo runs")
+        return []
+    # Final result
+    num_parameters = len(res[0])
+    res_std = []
+    for each in xrange(num_parameters):
+        temp = res[:, each]
+        res_std.append(np.std(temp))
+    return res_std
 
 
 if __name__ == "__main__":
-    logging.config.fileConfig("process_log.conf")
+    logging.config.fileConfig("mc_log.conf")
     f = open(os.path.join(Location.root, "data/source_list.pkl"), "rb")
     source_list = pickle.load(f)
     f.close()
@@ -58,5 +73,12 @@ if __name__ == "__main__":
                 56768, 56772, 56780, 56782, 56783, 56795, 56799, 56804, 56808,
                 56813, 56825, 56829, 56833, 56837]
     for each in source_list:
+        res_dir = os.path.join(Location.mc, str(each))
+        create_directory(res_dir)
         for each_day in mjd_list:
-            res_std =
+            print("Begin Monte Carlo for " + str(each) + " " + str(each_day))
+            res_std = mcee(each, each_day)
+            res_file = open(os.path.join(Location.root, res_dir,
+                                         str(each_day) + ".pkl"))
+            pickle.dump(res_std, res_file)
+            res_file.close()
