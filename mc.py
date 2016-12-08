@@ -8,7 +8,7 @@ from code.core.location import Location
 from code.core.util.io import create_directory
 from code.core.dataio.specio import get_spec
 from code.core.util.parallel import para_return
-from spectra_fit.py import spectra_fit
+from spectra_fit import spectra_fit
 
 
 def noise_gene(flux, error):
