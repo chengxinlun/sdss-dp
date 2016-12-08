@@ -12,7 +12,8 @@ from spectra_fit import spectra_fit
 
 
 def noise_gene(flux, error):
-    noise_t = [np.random.normal(flux[i], error[i], 100) for i in len(flux)]
+    noise_t = [np.random.normal(flux[i], error[i], 100)
+               for i in xrange(len(flux))]
     noise_t = np.array(noise_t)
     return np.transpose(noise_t)
 
