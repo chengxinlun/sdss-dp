@@ -6,7 +6,7 @@ import logging
 import numpy as np
 from code.core.location import Location
 from code.core.util.io import create_directory
-from code.core.dataio.dataio import get_spec
+from code.core.dataio.specio import get_spec
 from code.core.util.parallel import para_return
 from spectra_fit.py import spectra_fit
 
