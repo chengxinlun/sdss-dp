@@ -65,6 +65,7 @@ def mcee(rmid, mjd):
 
 if __name__ == "__main__":
     logging.config.fileConfig("mc_log.conf")
+    '''
     f = open(os.path.join(Location.root, "data/source_list.pkl"), "rb")
     source_list = pickle.load(f)
     f.close()
@@ -82,3 +83,6 @@ if __name__ == "__main__":
                                          str(each_day) + ".pkl"))
             pickle.dump(res_std, res_file)
             res_file.close()
+    '''
+    res_std = mcee(177, 56660)
+    print(res_std)
