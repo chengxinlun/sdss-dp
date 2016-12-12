@@ -4,7 +4,9 @@ import os
 import pickle
 import logging
 import numpy as np
-import matplotlib.pyplot as plt
+from code.fitting.fe2 import Fe2V
+from code.fitting.hbeta import Hbeta2
+from code.fitting.narrow import Narrow
 from code.core.location import Location
 from code.core.util.io import create_directory
 from code.core.dataio.specio import get_spec
@@ -43,13 +45,12 @@ def mcee(rmid, mjd):
     # Noise generation
     f_with_e = noise_gene(f, e)
     # Wrapping for parallel computation
-    args = [(rmid, mjd, True, cont_init, line_init, w, each, e,)
-            for each in f_with_e]
+    args = [(rmid, mjd, cont_init, line_init, w, each, e,) for each in f_with_e]
     # Parallel computation
-    res = para_return(spectra_fit, args, num_thread=100)
+    res = para_return(flux_integrate, args, num_thread=100)
     # Filtering out empty(failed) fitting
     res = [each for each in res if each != []]
-    # Exception of insufficient data
+    # Exception of insufficient Monte Carlo runs
     if len(res) < 80:
         logger = logging.getLogger("root")
         logger.error(str(rmid) + " " + str(mjd) +
@@ -57,11 +58,33 @@ def mcee(rmid, mjd):
         return []
     # Final result
     num_parameters = len(res[0])
+    res_ave = []
     res_std = []
     for each in xrange(num_parameters):
         temp = res[:, each]
+        res_ave.append(np.mean(temp))
         res_std.append(np.std(temp))
-    return res_std
+    return [res_ave, res_std]
+
+
+def flux_integrate(rmid, mjd, cont_init, line_init, w, f, e):
+    fitting_res = spectra_fit(rmid, mjd, True, cont_init, line_init, w, f, e)
+    # Fitting failure, return no result
+    if len(fitting_res) == 0:
+        return []
+    # FeII model, data and flux
+    fe_m = Fe2V(*fitting_res[0][3:])
+    fe_d = fe_m(w)
+    fe_f = np.trapz(fe_d, w)
+    # Hbeta model, data and flux
+    hb_m = Hbeta2(*fitting_res[1][0:9])
+    hb_d = hb_m(w)
+    hb_f = np.trapz(hb_d, w)
+    # OIII model, data and flux
+    o3_m = Narrow(*fitting_res[1][9:13])
+    o3_d = o3_m(w)
+    o3_f = np.trapz(o3_d, w)
+    return [fe_f, o3_f, hb_f]
 
 
 if __name__ == "__main__":
