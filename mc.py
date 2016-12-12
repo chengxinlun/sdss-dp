@@ -61,7 +61,7 @@ def mcee(rmid, mjd):
     res_ave = []
     res_std = []
     for each in xrange(num_parameters):
-        temp = [res[every][each] for every in res]
+        temp = [every[each] for every in res]
         res_ave.append(np.mean(temp))
         res_std.append(np.std(temp))
     return [res_ave, res_std]
