@@ -4,6 +4,7 @@ import os
 import pickle
 import logging
 import numpy as np
+import matplotlib.pyplot as plt
 from code.core.location import Location
 from code.core.util.io import create_directory
 from code.core.dataio.specio import get_spec
@@ -37,8 +38,7 @@ def mcee(rmid, mjd):
         f_data.close()
     except Exception:
         logger = logging.getLogger("root")
-        logger.error("Error", str(rmid) + str(mjd) +
-                     ": fitting result not found")
+        logger.error(str(rmid) + str(mjd) + ": fitting result not found")
         return []
     # Noise generation
     f_with_e = noise_gene(f, e)
@@ -52,7 +52,7 @@ def mcee(rmid, mjd):
     # Exception of insufficient data
     if len(res) < 80:
         logger = logging.getLogger("root")
-        logger.error("Error", str(rmid) + " " + str(mjd) +
+        logger.error(str(rmid) + " " + str(mjd) +
                      ": insufficient number of Monte Carlo runs")
         return []
     # Final result
