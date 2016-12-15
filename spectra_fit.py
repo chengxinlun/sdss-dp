@@ -70,7 +70,8 @@ def spectra_fit(rmid, mjd, isMc, cont_init, line_init, w, f, e):
         warnings.filterwarnings('error')
         try:
             cont_res = cffit(w, f, e, cont_init)
-        except Exception:
+        except Exception as e:
+            print(str(e))
             logger = logging.getLogger("root")
             logger.error(str(rmid) + " " + str(mjd) +
                          ": continuum fitting failure")
