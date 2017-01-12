@@ -90,6 +90,7 @@ ENV/
 
 # Skip the imported things
 */
+*.zip
 *.tar.gz
 *.0
 .*
