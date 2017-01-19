@@ -103,6 +103,6 @@ if __name__ == "__main__":
             print("Begin Monte Carlo for " + str(each) + " " + str(each_day))
             res_std = mcee(each, each_day)
             res_file = open(os.path.join(Location.root, res_dir,
-                                         str(each_day) + ".pkl"))
+                                         str(each_day) + ".pkl"), "wb")
             pickle.dump(res_std, res_file)
             res_file.close()
