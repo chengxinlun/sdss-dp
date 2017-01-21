@@ -15,7 +15,7 @@ from spectra_fit import spectra_fit
 
 
 def noise_gene(flux, error):
-    noise_t = [np.random.normal(flux[i], error[i], 100)
+    noise_t = [np.random.normal(flux[i], np.abs(error[i]), 100)
                for i in xrange(len(flux))]
     noise_t = np.array(noise_t)
     return np.transpose(noise_t)
@@ -40,7 +40,7 @@ def mcee(rmid, mjd):
         f_data.close()
     except Exception:
         logger = logging.getLogger("root")
-        logger.error(str(rmid) + str(mjd) + ": fitting result not found")
+        logger.error(str(rmid) + " " + str(mjd) + ": fitting result not found")
         return []
     # Noise generation
     f_with_e = noise_gene(f, e)
@@ -101,7 +101,12 @@ if __name__ == "__main__":
         create_directory(res_dir)
         for each_day in mjd_list:
             print("Begin Monte Carlo for " + str(each) + " " + str(each_day))
-            res_std = mcee(each, each_day)
+            try:
+                res_std = mcee(each, each_day)
+            except Exception:
+                logger = logging.getLogger("root")
+                logger.error(str(each) + " " + str(each_day) + ": unexpected.")
+                continue
             res_file = open(os.path.join(Location.root, res_dir,
                                          str(each_day) + ".pkl"), "wb")
             pickle.dump(res_std, res_file)
