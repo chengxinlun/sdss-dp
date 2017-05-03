@@ -16,7 +16,7 @@ from spectra_fit import spectra_fit
 
 def noise_gene(flux, error):
     noise_t = [np.random.normal(flux[i], np.abs(error[i]), 100)
-               for i in xrange(len(flux))]
+               for i in range(len(flux))]
     noise_t = np.array(noise_t)
     return np.transpose(noise_t)
 
@@ -48,6 +48,7 @@ def mcee(rmid, mjd):
     args = [(rmid, mjd, cont_init, line_init, w, each, e,) for each in f_with_e]
     # Parallel computation
     res = para_return(flux_integrate, args, num_thread=100)
+    print(res)
     # Filtering out empty(failed) fitting
     res = [each for each in res if each != []]
     # Exception of insufficient Monte Carlo runs
@@ -60,10 +61,12 @@ def mcee(rmid, mjd):
     num_parameters = len(res[0])
     res_ave = []
     res_std = []
-    for each in xrange(num_parameters):
+    for each in range(num_parameters):
         temp = [every[each] for every in res]
         res_ave.append(np.mean(temp))
         res_std.append(np.std(temp))
+    print(res_ave)
+    print(res_std)
     return [res_ave, res_std]
 
 
