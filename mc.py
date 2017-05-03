@@ -48,7 +48,6 @@ def mcee(rmid, mjd):
     args = [(rmid, mjd, cont_init, line_init, w, each, e,) for each in f_with_e]
     # Parallel computation
     res = para_return(flux_integrate, args, num_thread=100)
-    print(res)
     # Filtering out empty(failed) fitting
     res = [each for each in res if each != []]
     # Exception of insufficient Monte Carlo runs
