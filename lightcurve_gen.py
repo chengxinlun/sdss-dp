@@ -7,34 +7,56 @@ import numpy as np
 from code.core.location import Location
 from code.core.dataio.specio import get_spec
 from code.core.util.io import create_directory
+from code.fitting.fe2 import Fe2V
+from code.fitting.hbeta import Hbeta2
+from code.fitting.narrow import Narrow
 
 
-# Reading the mc result
-def mc_read(rmid, mjd):
-    filein_dir = os.path.join(Location.root, "result/mc", str(rmid),
-                              str(mjd) + ".pkl")
+# Reading the fit result
+def fit_read(rmid, mjd):
     try:
-        filein = open(filein_dir, "rb")
-        mc_res = pickle.load(filein)
-        filein.close()
+        f_data = open(os.path.join(Location.root, Location.fitting, str(rmid),
+                                   str(mjd) + ".pkl"), "rb")
+        res_list = pickle.load(f_data)
+        cont_res = res_list[0]
+        line_res = res_list[1]
+        f_data.close()
     except Exception:
+        err_str = str(rmid) + " " + str(mjd) + ": fitting not found"
         logger = logging.getLogger("root")
-        logger.error("Error", str(rmid) + " " + str(mjd) +
-                     ": mc result not found")
+        logger.error(err_str)
+        print(err_str)
         return []
-    print(mc_res)
-    return mc_res
+    return [cont_res, line_res]
+
+
+# Integration
+def intg(cont_res, line_res, wmin, wmax):
+    x = np.arange(wmin, wmax, 0.1)
+    # FeII
+    fe_m = Fe2V(*cont_res[3:])
+    fe_d = fe_m(x)
+    fe_f = np.trapz(fe_d, x)
+    # Hbeta
+    hb_m = Hbeta2(*line_res[0:9])
+    hb_d = hb_m(x)
+    hb_f = np.trapz(hb_d, x)
+    # OIII model, data and flux
+    o3_m = Narrow(*line_res[9:13])
+    o3_d = o3_m(x)
+    o3_f = np.trapz(o3_d, x)
+    return [fe_f, hb_f, o3_f]
 
 
 # Processing line mc result into data for output
 def llc_data(rmid, mjd):
-    mc_res = mc_read(rmid, mjd)
-    if mc_res == []:
-        raise Exception("mc result not found")
+    res = fit_read(rmid, mjd)
+    if res == []:
+        return []
     else:
-        hbeta_f = mc_res[0][2]
-        hbeta_e = mc_res[1][2]
-        return str(mjd) + "    " + str(hbeta_f) + "    " + str(hbeta_e)
+        fef, hbf, o3f = intg(res[0], res[1], 4000.0, 5500.0)
+        return [str(mjd) + "    " + str(fef), str(mjd) + "    " + str(hbf),
+                str(mjd) + "    " + str(o3f)]
 
 
 # Processing continuum into data for output
@@ -48,6 +70,14 @@ def clc_data(rmid, mjd):
     return str(mjd) + "    " + str(f[idx]) + "    " + str(e[idx])
 
 
+# Write list to file
+def lc_write(fname, lc, lc_dir):
+    llc_file = open(os.path.join(lc_dir, fname), 'w')
+    for each in lc:
+        llc_file.write(each + "\n")
+    llc_file.close()
+
+
 # Generate lightcurve files for each source
 def lc_gen(rmid):
     mjd_list = [56660, 56664, 56669, 56683, 56686, 56697, 56713, 56715, 56717,
@@ -57,13 +87,18 @@ def lc_gen(rmid):
     lc_dir = os.path.join(Location.root, "result/lightcurve", str(rmid))
     create_directory(lc_dir)
     # Check if too many days are empty
-    llc = []
+    felc = []
+    hblc = []
+    o3lc = []
     clc = []
     lfail = 0
     cfail = 0
     for each_day in mjd_list:
         try:
-            llc.append(llc_data(rmid, each_day))
+            allc = llc_data(rmid, each_day)
+            felc.append(allc[0])
+            hblc.append(allc[1])
+            o3lc.append(allc[2])
         except Exception:
             lfail = lfail + 1
         try:
@@ -73,17 +108,11 @@ def lc_gen(rmid):
         if lfail > 0.5 * len(mjd_list) or cfail > 0.5 * len(mjd_list):
             raise Exception("too many day missing")
     # Generate lightcurve files
-    llc_file = open(os.path.join(lc_dir, "hbeta.txt"), 'w')
-    for each in llc:
-        llc_file.write(each + "\n")
-    llc_file.close()
-    clc_file = open(os.path.join(lc_dir, "cont.txt"), 'w')
-    for each in clc:
-        clc_file.write(each + "\n")
-    clc_file.close()
+    lc_write("fe2.txt", felc, lc_dir)
+    lc_write("hbeta.txt", hblc, lc_dir)
+    lc_write("o3.txt", o3lc, lc_dir)
 
 
-'''
 # Generate all lightcurve file
 logging.config.fileConfig("lc_log.conf")
 # Valid source list
@@ -97,5 +126,3 @@ for each in source_list:
         logger = logging.getLogger("root")
         logger.error("Error", str(each) + ": lightcurve generation failure")
     print(str(each) + " lc generation finished")
-'''
-lc_gen(798)
