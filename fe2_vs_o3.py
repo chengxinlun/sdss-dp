@@ -1,56 +1,72 @@
 import os
 import pickle
-import logging
 import numpy as np
 import matplotlib.pyplot as plt
 from code.core.location import Location
 
 
 # Read from lightcurve
-def read_lc(rmid):
+def read_lc(rmid, line):
+    fd = np.loadtxt(os.path.join(Location.root, Location.lightcurve, str(rmid),
+                                 line + ".txt"))
+    mjd_list = fd[:, 0]
+    flux = fd[:, 1]
+    return [mjd_list, flux]
 
 
-# Normalization, that is, dividing hbeta
-def norm_f(rmid):
-    try:
-        flux_a, error_a = aver(rmid)
-        if flux_a == [] or error_a == []:
-            raise Exception("Error")
-    except Exception:
-        logger = logging.getLogger("root")
-        logger.error("Error", str(rmid) + ": completely empty")
-        return []
-    # [0]: Fe2, [1]: O3, [2]:Hbeta
-    flux_n = flux_a / flux_a[2]
-    error_n = (flux_a * error_a[2] + error_a * flux_a[2]) / \
-        (flux_a[2] * flux_a[2])
-    return [flux_n, error_n]
+# Filter out invalid result
+def filt(mjd_list, flux):
+    n0i = np.nonzero(flux)
+    norm_mjdl = mjd_list[n0i]
+    norm_flux = flux[n0i]
+    if len(norm_flux) < 0.5 * len(mjd_list):
+        return [[], []]
+    else:
+        return [norm_mjdl, norm_flux]
 
 
-# Fe2 vs O3 plot
-fe2 = []
-fe2_e = []
-o3 = []
-o3_e = []
-s = []
-# Valid source list
-f = open(os.path.join(Location.root, "data/source_list.pkl"), "rb")
-source_list = pickle.load(f)
-f.close()
-for each in source_list:
-    flux_n, error_n = norm_f(each)
-    if flux_n == [] or error_n == []:
-        continue
-    fe2.append(flux_n[0])
-    fe2_e.append(error_n[0])
-    o3.append(flux_n[1])
-    o3_e.append(error_n[1])
-    s.append(each)
-plt.errorbar(fe2, o3, xerr=fe2_e, yerr=o3_e, linestyle='none')
-plt.xlabel("Relative FeII")
-plt.ylabel("Relative OIII")
-plt.show()
-plt.scatter(fe2, o3)
-plt.xlabel("Relative FeII")
-plt.ylabel("Relative OIII")
-plt.show()
+# Intersection
+def inter(mjdl_list, fl_list):
+    mjd_list = mjdl_list[0]
+    for each in mjdl_list:
+        mjd_list = np.intersect1d(mjd_list, each)
+    flux = []
+    for each in range(len(mjdl_list)):
+        inter_i = np.nonzero(np.in1d(mjdl_list[each], mjd_list))
+        flux.append(fl_list[inter_i])
+    flux = np.array(flux)
+    return [mjd_list, flux]
+
+
+# Get hb, o3
+def ave(rmid):
+    hbl = filt(*read_lc(rmid, "hbeta"))
+    o3l = filt(*read_lc(rmid, "o3"))
+    fel = filt(*read_lc(rmid, "fe2"))
+    a_hb = np.mean(hbl[1])
+    a_o3 = np.mean(o3l[1])
+    a_fe = np.mean(fel[1])
+    r_o3 = a_o3 / a_hb
+    r_fe = a_fe / a_hb
+    return [r_o3, r_fe]
+
+
+if __name__ == "__main__":
+    f = open(os.path.join(Location.root, "data/source_list.pkl"), "rb")
+    source_list = pickle.load(f)
+    f.close()
+    data_list = []
+    for each in source_list:
+        try:
+            temp = ave(each)
+            print(temp)
+            data_list.append(temp)
+        except Exception:
+            continue
+    data_list = np.array(data_list)
+    plt.scatter(data_list[:, 0], data_list[:, 1])
+    plt.xlim([0.0, 2.5])
+    plt.ylim([0.0, 25.0])
+    plt.xlabel("Relative OIII")
+    plt.ylabel("Relative FeII")
+    plt.show()
