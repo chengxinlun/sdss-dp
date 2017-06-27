@@ -48,18 +48,18 @@ def spectra_fit(rmid, mjd, isMc=False, isCont=False, cont_init=None,
             return []
     with warnings.catch_warnings():
         warnings.filterwarnings('error')
-        try:
-            cont_res = cffit(w, f, e, cont_init)
-        except Exception:
-            logger = logging.getLogger("root")
-            logger.error(str(rmid) + " " + str(mjd) + " : continuum fitting " +
-                         "failure")
-            return []
-        try:
-            line_res = hofit(w, f, e, cont_res.params, line_init)
-        except Exception:
-            logger = logging.getLogger("root")
-            logger.error(str(rmid) + " " + str(mjd) + " : line fitting failure")
+        # try:
+        cont_res = cffit(w, f, e, cont_init)
+        # except Exception:
+        #     logger = logging.getLogger("root")
+        #     logger.error(str(rmid) + " " + str(mjd) + " : continuum fitting " +
+        #                  "failure")
+        #     return []
+        # try:
+        line_res = hofit(w, f, e, cont_res.params, line_init)
+        # except Exception:
+        #     logger = logging.getLogger("root")
+        #     logger.error(str(rmid) + " " + str(mjd) + " : line fitting failure")
         if not isMc:
             save_fit(rmid, mjd, [cont_res, line_res], w, f, isCont)
             return []
