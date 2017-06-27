@@ -36,7 +36,7 @@ def hofit(w, f, e, cf_res, initial):
 
 
 def spectra_fit(rmid, mjd, isMc=False, isCont=False, cont_init=None,
-                line_init=None, w=None, f=None, e=None):
+                line_init=None, w=None, f=None, e=None, crit=40.0):
     if w is None and f is None and e is None:
         try:
             w, f, e = get_spec("data/calib/pt/" + str(rmid) + "-" + str(mjd) +
@@ -48,18 +48,23 @@ def spectra_fit(rmid, mjd, isMc=False, isCont=False, cont_init=None,
             return []
     with warnings.catch_warnings():
         warnings.filterwarnings('error')
-        # try:
-        cont_res = cffit(w, f, e, cont_init)
-        # except Exception:
-        #     logger = logging.getLogger("root")
-        #     logger.error(str(rmid) + " " + str(mjd) + " : continuum fitting " +
-        #                  "failure")
-        #     return []
-        # try:
-        line_res = hofit(w, f, e, cont_res.params, line_init)
-        # except Exception:
-        #     logger = logging.getLogger("root")
-        #     logger.error(str(rmid) + " " + str(mjd) + " : line fitting failure")
+        try:
+            cont_res = cffit(w, f, e, cont_init)
+        except Exception:
+            logger = logging.getLogger("root")
+            logger.error(str(rmid) + " " + str(mjd) + " : continuum fitting " +
+                         "failure")
+            return []
+        try:
+            line_res = hofit(w, f, e, cont_res.params, line_init)
+        except Exception:
+            logger = logging.getLogger("root")
+            logger.error(str(rmid) + " " + str(mjd) + " : line fitting failure")
+            return []
+        if line_res.redchi > crit:
+            logger = logging.getLogger("root")
+            logger.error(str(rmid) + " " + str(mjd) + " : line fitting redchi" +
+                         "too large")
         if not isMc:
             save_fit(rmid, mjd, [cont_res, line_res], w, f, isCont)
             return []
