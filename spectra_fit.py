@@ -5,6 +5,8 @@ import logging
 import logging.config
 import warnings
 import pickle
+import matplotlib
+matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from lmfit import report_fit
 from code.calib.splitspec import splitspec
