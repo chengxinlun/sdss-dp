@@ -4,6 +4,9 @@ import os
 import pickle
 import logging
 import numpy as np
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
 from code.core.location import Location
 from code.core.util.io import create_directory
 from code.core.dataio.specio import get_spec
@@ -13,15 +16,15 @@ from line_integration import line_inte
 
 
 def noise_gene(flux, error):
-    noise_t = [np.random.normal(flux[i], np.abs(error[i]), 100)
+    noise_t = [np.random.normal(flux[i], np.abs(error[i]), 1000)
                for i in range(len(flux))]
     noise_t = np.array(noise_t)
     return np.transpose(noise_t)
 
 
 def integ(rmid, mjd, initp, w, f, e):
-    res = spectra_fit(rmid, mjd, isMc=True, cont_init=initp[0].params,
-                      line_init=initp[1].params, w=w, f=f, e=e)
+    res = spectra_fit(rmid, mjd, isMc=True, cont_init=initp[0],
+                      line_init=initp[1], w=w, f=f, e=e)
     if res == []:
         return []
     else:
@@ -52,19 +55,22 @@ def mcee(rmid, mjd):
     # Noise generation
     f_with_e = noise_gene(f, e)
     # Wrapping for parallel computation
-    args = [(rmid, mjd, True, False, cont_init, line_init, w, each, e,) for
+    args = [(rmid, mjd, [cont_init, line_init], w, each, e,) for
             each in f_with_e]
     # Parallel computation
-    res = para_return(spectra_fit, args, num_thread=4)
+    res = para_return(integ, args, num_thread=4)
     # Filtering out empty(failed) fitting
     res = [each for each in res if each != []]
     # Exception of insufficient Monte Carlo runs
-    if len(res) < 80:
+    if len(res) < 400:
         logger = logging.getLogger("root")
         logger.error(str(rmid) + " " + str(mjd) +
                      ": insufficient number of Monte Carlo runs")
         return []
     # Final result
+    res = np.array(res)
+    plt.hist(res[:, 0])
+    plt.savefig("test.png")
     res_ave = np.array([np.mean(res[:, 0]), np.mean(res[:, 1]),
                         np.mean(res[:, 2]), np.mean(res[:, 3])])
     res_std = np.array([np.std(res[:, 0]), np.std(res[:, 1]),
