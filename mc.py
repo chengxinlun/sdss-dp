@@ -55,7 +55,7 @@ def mcee(rmid, mjd):
     args = [(rmid, mjd, True, False, cont_init, line_init, w, each, e,) for
             each in f_with_e]
     # Parallel computation
-    res = para_return(spectra_fit, args, num_thread=100)
+    res = para_return(spectra_fit, args, num_thread=4)
     # Filtering out empty(failed) fitting
     res = [each for each in res if each != []]
     # Exception of insufficient Monte Carlo runs

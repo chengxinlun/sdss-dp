@@ -50,10 +50,10 @@ def spectra_fit(rmid, mjd, isMc=False, isCont=False, cont_init=None,
         warnings.filterwarnings('error')
         try:
             cont_res = cffit(w, f, e, cont_init)
-        except Exception:
+        except Exception as reason:
             logger = logging.getLogger("root")
             logger.error(str(rmid) + " " + str(mjd) + " : continuum fitting " +
-                         "failure")
+                         "failure " + str(reason))
             return []
         try:
             line_res = hofit(w, f, e, cont_res.params, line_init)
