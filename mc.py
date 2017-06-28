@@ -4,9 +4,6 @@ import os
 import pickle
 import logging
 import numpy as np
-import matplotlib
-matplotlib.use('Agg')
-import matplotlib.pyplot as plt
 from code.core.location import Location
 from code.core.util.io import create_directory
 from code.core.dataio.specio import get_spec
@@ -69,16 +66,14 @@ def mcee(rmid, mjd):
         return []
     # Final result
     res = np.array(res)
-    plt.hist(res[:, 0])
-    plt.savefig("test.png")
     res_ave = np.array([np.mean(res[:, 0]), np.mean(res[:, 1]),
                         np.mean(res[:, 2]), np.mean(res[:, 3])])
     res_std = np.array([np.std(res[:, 0]), np.std(res[:, 1]),
                         np.std(res[:, 2]), np.std(res[:, 3])])
+    print([res_ave, res_std])
     return [res_ave, res_std]
 
 
-'''
 if __name__ == "__main__":
     f = open(os.path.join(Location.root, "data/source_list.pkl"), "rb")
     source_list = pickle.load(f)
@@ -102,6 +97,3 @@ if __name__ == "__main__":
                                          str(each_day) + ".pkl"), "wb")
             pickle.dump(res_std, res_file)
             res_file.close()
-'''
-logging.config.fileConfig("mc_log.conf")
-print(mcee(16, 56660))
