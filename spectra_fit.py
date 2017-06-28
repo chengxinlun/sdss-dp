@@ -65,11 +65,12 @@ def spectra_fit(rmid, mjd, isMc=False, isCont=False, cont_init=None,
             logger = logging.getLogger("root")
             logger.error(str(rmid) + " " + str(mjd) + " : line fitting redchi" +
                          "too large")
+            return []
         if not isMc:
             save_fit(rmid, mjd, [cont_res, line_res], w, f, isCont)
             return []
         else:
-            return [cont_res, line_res]
+            return [cont_res.params, line_res.params]
 
 
 def save_fit(rmid, mjd, res_list, w, f, isCont):

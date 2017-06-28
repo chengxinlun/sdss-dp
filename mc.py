@@ -4,14 +4,12 @@ import os
 import pickle
 import logging
 import numpy as np
-from code.fitting.fe2 import Fe2V
-from code.fitting.hbeta import Hbeta2
-from code.fitting.narrow import Narrow
 from code.core.location import Location
 from code.core.util.io import create_directory
 from code.core.dataio.specio import get_spec
 from code.core.util.parallel import para_return
 from spectra_fit import spectra_fit
+from line_integration import line_inte
 
 
 def noise_gene(flux, error):
@@ -19,6 +17,15 @@ def noise_gene(flux, error):
                for i in range(len(flux))]
     noise_t = np.array(noise_t)
     return np.transpose(noise_t)
+
+
+def integ(rmid, mjd, initp, w, f, e):
+    res = spectra_fit(rmid, mjd, isMc=True, cont_init=initp[0],
+                      line_init=initp[1], w=w, f=f, e=e)
+    if res == []:
+        return []
+    else:
+        return line_inte(*res)
 
 
 def mcee(rmid, mjd):
@@ -45,9 +52,10 @@ def mcee(rmid, mjd):
     # Noise generation
     f_with_e = noise_gene(f, e)
     # Wrapping for parallel computation
-    args = [(rmid, mjd, cont_init, line_init, w, each, e,) for each in f_with_e]
+    args = [(rmid, mjd, True, False, cont_init, line_init, w, each, e,) for
+            each in f_with_e]
     # Parallel computation
-    res = para_return(flux_integrate, args, num_thread=100)
+    res = para_return(spectra_fit, args, num_thread=100)
     # Filtering out empty(failed) fitting
     res = [each for each in res if each != []]
     # Exception of insufficient Monte Carlo runs
@@ -57,38 +65,14 @@ def mcee(rmid, mjd):
                      ": insufficient number of Monte Carlo runs")
         return []
     # Final result
-    num_parameters = len(res[0])
-    res_ave = []
-    res_std = []
-    for each in range(num_parameters):
-        temp = [every[each] for every in res]
-        res_ave.append(np.mean(temp))
-        res_std.append(np.std(temp))
-    print(res_ave)
-    print(res_std)
+    res_ave = np.array([np.mean(res[:, 0]), np.mean(res[:, 1]),
+                        np.mean(res[:, 2]), np.mean(res[:, 3])])
+    res_std = np.array([np.std(res[:, 0]), np.std(res[:, 1]),
+                        np.std(res[:, 2]), np.std(res[:, 3])])
     return [res_ave, res_std]
 
 
-def flux_integrate(rmid, mjd, cont_init, line_init, w, f, e):
-    fitting_res = spectra_fit(rmid, mjd, True, cont_init, line_init, w, f, e)
-    # Fitting failure, return no result
-    if len(fitting_res) == 0:
-        return []
-    # FeII model, data and flux
-    fe_m = Fe2V(*fitting_res[0][3:])
-    fe_d = fe_m(w)
-    fe_f = np.trapz(fe_d, w)
-    # Hbeta model, data and flux
-    hb_m = Hbeta2(*fitting_res[1][0:9])
-    hb_d = hb_m(w)
-    hb_f = np.trapz(hb_d, w)
-    # OIII model, data and flux
-    o3_m = Narrow(*fitting_res[1][9:13])
-    o3_d = o3_m(w)
-    o3_f = np.trapz(o3_d, w)
-    return [fe_f, o3_f, hb_f]
-
-
+'''
 if __name__ == "__main__":
     logging.config.fileConfig("mc_log.conf")
     f = open(os.path.join(Location.root, "data/source_list.pkl"), "rb")
@@ -113,3 +97,5 @@ if __name__ == "__main__":
                                          str(each_day) + ".pkl"), "wb")
             pickle.dump(res_std, res_file)
             res_file.close()
+'''
+print(mcee(16, 56660))
