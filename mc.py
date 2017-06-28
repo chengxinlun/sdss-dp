@@ -20,8 +20,8 @@ def noise_gene(flux, error):
 
 
 def integ(rmid, mjd, initp, w, f, e):
-    res = spectra_fit(rmid, mjd, isMc=True, cont_init=initp[0],
-                      line_init=initp[1], w=w, f=f, e=e)
+    res = spectra_fit(rmid, mjd, isMc=True, cont_init=initp[0].params,
+                      line_init=initp[1].params, w=w, f=f, e=e)
     if res == []:
         return []
     else:
@@ -74,7 +74,6 @@ def mcee(rmid, mjd):
 
 '''
 if __name__ == "__main__":
-    logging.config.fileConfig("mc_log.conf")
     f = open(os.path.join(Location.root, "data/source_list.pkl"), "rb")
     source_list = pickle.load(f)
     f.close()
@@ -98,4 +97,5 @@ if __name__ == "__main__":
             pickle.dump(res_std, res_file)
             res_file.close()
 '''
+logging.config.fileConfig("mc_log.conf")
 print(mcee(16, 56660))
