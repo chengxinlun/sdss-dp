@@ -3,19 +3,14 @@ import os
 import pickle
 import logging
 import logging.config
-import numpy as np
 from code.core.location import Location
-from code.core.dataio.specio import get_spec
 from code.core.util.io import create_directory
-from code.fitting.fe2 import Fe2V
-from code.fitting.hbeta import Hbeta2
-from code.fitting.narrow import Narrow
 
 
 # Reading the fit result
 def fit_read(rmid, mjd):
     try:
-        f_data = open(os.path.join(Location.root, Location.fitting, str(rmid),
+        f_data = open(os.path.join(Location.root, Location.mc, str(rmid),
                                    str(mjd) + ".pkl"), "rb")
         res_list = pickle.load(f_data)
         cont_res = res_list[0]
@@ -25,56 +20,16 @@ def fit_read(rmid, mjd):
         err_str = str(rmid) + " " + str(mjd) + ": fitting not found"
         logger = logging.getLogger("root")
         logger.error(err_str)
-        print(err_str)
         return []
     return [cont_res, line_res]
 
 
-# Integration
-def intg(cont_res, line_res, wmin, wmax):
-    x = np.arange(wmin, wmax, 0.1)
-    # FeII
-    fe_m = Fe2V(*cont_res[3:])
-    fe_d = fe_m(x)
-    fe_f = np.trapz(fe_d, x)
-    # Hbeta
-    hb_m = Hbeta2(*line_res[0:9])
-    hb_d = hb_m(x)
-    hb_f = np.trapz(hb_d, x)
-    # OIII model, data and flux
-    o3_m = Narrow(*line_res[9:13])
-    o3_d = o3_m(x)
-    o3_f = np.trapz(o3_d, x)
-    return [fe_f, hb_f, o3_f]
-
-
-# Processing line mc result into data for output
-def llc_data(rmid, mjd):
-    res = fit_read(rmid, mjd)
-    if res == []:
-        return []
-    else:
-        fef, hbf, o3f = intg(res[0], res[1], 4000.0, 5500.0)
-        return [str(mjd) + "    " + str(fef), str(mjd) + "    " + str(hbf),
-                str(mjd) + "    " + str(o3f)]
-
-
-# Processing continuum into data for output
-def clc_data(rmid, mjd):
-    try:
-        w, f, e = get_spec("data/calib/pt/" + str(rmid) + "-" + str(mjd) +
-                           ".pkl")
-    except Exception:
-        raise Exception("continuum not found")
-    idx = (np.abs(w - 5100.0)).argmin()  # Nearnest index to wavelength 5100A
-    return str(mjd) + "    " + str(f[idx]) + "    " + str(e[idx])
-
-
 # Write list to file
-def lc_write(fname, lc, lc_dir):
+def lc_write(fname, lc, lc_e, mjdr, lc_dir):
     llc_file = open(os.path.join(lc_dir, fname), 'w')
-    for each in lc:
-        llc_file.write(each + "\n")
+    for i in range(len(lc)):
+        llc_file.write(str(mjdr[i]) + " " + str(lc[i]) + " " + str(lc_e[i]) +
+                       "\n")
     llc_file.close()
 
 
@@ -88,29 +43,36 @@ def lc_gen(rmid):
     create_directory(lc_dir)
     # Check if too many days are empty
     felc = []
+    felc_e = []
     hblc = []
+    hblc_e = []
     o3lc = []
+    o3lc_e = []
     clc = []
-    lfail = 0
-    cfail = 0
+    clc_e = []
+    mjd_real = []
+    fail = 0
     for each_day in mjd_list:
-        try:
-            allc = llc_data(rmid, each_day)
-            felc.append(allc[0])
-            hblc.append(allc[1])
-            o3lc.append(allc[2])
-        except Exception:
-            lfail = lfail + 1
-        try:
-            clc.append(clc_data(rmid, each_day))
-        except Exception:
-            cfail = cfail + 1
-        if lfail > 0.5 * len(mjd_list) or cfail > 0.5 * len(mjd_list):
+        mc_res = fit_read(rmid, each_day)
+        if mc_res == [] or mc_res[0] == [] or mc_res[1] == []:
+            fail += 1
+            continue
+        clc.append(mc_res[0][0])
+        felc.append(mc_res[0][1])
+        hblc.append(mc_res[0][2])
+        o3lc.append(mc_res[0][3])
+        clc_e.append(mc_res[1][0])
+        felc_e.append(mc_res[1][1])
+        hblc_e.append(mc_res[1][2])
+        o3lc_e.append(mc_res[1][3])
+        mjd_real.append(each_day)
+        if fail > 0.5 * len(mjd_list):
             raise Exception("too many day missing")
     # Generate lightcurve files
-    lc_write("fe2.txt", felc, lc_dir)
-    lc_write("hbeta.txt", hblc, lc_dir)
-    lc_write("o3.txt", o3lc, lc_dir)
+    lc_write("fe2.txt", felc, felc_e, mjd_real, lc_dir)
+    lc_write("hbeta.txt", hblc, hblc_e, mjd_real, lc_dir)
+    lc_write("o3.txt", o3lc, o3lc_e, mjd_real, lc_dir)
+    lc_write("cont.txt", clc, clc_e, mjd_real, lc_dir)
 
 
 # Generate all lightcurve file
