@@ -55,7 +55,7 @@ def mcee(rmid, mjd):
     args = [(rmid, mjd, [cont_init, line_init], w, each, e,) for
             each in f_with_e]
     # Parallel computation
-    res = para_return(integ, args, num_thread=4)
+    res = para_return(integ, args, num_thread=100)
     # Filtering out empty(failed) fitting
     res = [each for each in res if each != []]
     # Exception of insufficient Monte Carlo runs
@@ -75,6 +75,7 @@ def mcee(rmid, mjd):
 
 
 if __name__ == "__main__":
+    logging.config.fileConfig("mc_log.conf")
     f = open(os.path.join(Location.root, "data/source_list.pkl"), "rb")
     source_list = pickle.load(f)
     f.close()
